@@ -1,10 +1,15 @@
-def construct_path_from_root(node, root):
+# compiled this function with help from lab 3 solution
+
+def construct_path_dfs(node, root,nxobject,node_attributes):
     """the non-recursive way!"""
 
+    #print(attributes_node)
     path_from_root = [node['label']]
     while node['parent']:
         node = node['parent']
         path_from_root = [node['label']] + path_from_root
+    for i in path_from_root:
+        print("DFS - Node Attributes: ",i ,node_attributes[i],"\n")
     return path_from_root
 
 

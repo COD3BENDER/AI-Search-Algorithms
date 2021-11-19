@@ -1,3 +1,16 @@
+# compiled this function with help from lab 3 solution
+
+def construct_path_bfs(node, root,nxobject,node_attributes):
+    """the non-recursive way!"""
+
+    path_from_root = [node['label']]
+    while node['parent']:
+        node = node['parent']
+        path_from_root = [node['label']] + path_from_root
+    for i in path_from_root:
+        print("BFS - Node Attributes: ", i,node_attributes[i],"\n")
+    return path_from_root
+
 def breadth_first_search(nxobject, initial, goal, compute_exploration_cost=False, reverse=False):
     if initial == goal:  # just in case, because now we are checking the children
         return None
