@@ -1,4 +1,6 @@
-# compiled this function with help from lab 3 solution
+'''
+Reference: compiled this function with help from lab 3 solution
+'''
 
 def construct_path_bfs(node, root,nxobject,node_attributes):
     """the non-recursive way!"""
@@ -11,14 +13,14 @@ def construct_path_bfs(node, root,nxobject,node_attributes):
         print("BFS - Node Attributes: ", i,node_attributes[i],"\n")
     return path_from_root
 
-def breadth_first_search(nxobject, initial, goal, compute_exploration_cost=False, reverse=False):
-    if initial == goal:  # just in case, because now we are checking the children
+def breadth_first_search(nxobject, root_node, goal, compute_exploration_cost=True, reverse=False):
+    if root_node == goal:  # just in case, because now we are checking the children
         return None
 
     number_of_explored_nodes = 1
-    frontier = [{'label': initial, 'parent': None}]
+    frontier = [{'label': root_node, 'parent': None}]
     # FIFO queue should NOT be implemented with a list, this is slow! better to use deque
-    explored = {initial}
+    explored = {root_node}
 
     while frontier:
         node = frontier.pop()  # pop from the right of the list
@@ -37,4 +39,4 @@ def breadth_first_search(nxobject, initial, goal, compute_exploration_cost=False
                 number_of_explored_nodes += 1
                 explored.add(child_label)
 
-    return explored
+    return None
