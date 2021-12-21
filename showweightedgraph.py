@@ -1,9 +1,12 @@
 import networkx as nx
 from matplotlib import pyplot as plt
 
-# compiled this function with help from lab 3 solution
+'''
+Reference: compiled this function from lab 3 solution Author Dr Huy Phan
+'''
+
 def show_weighted_graph(networkx_graph, node_size, font_size, fig_size):
-  # Allocate the given fig_size in order to have space for each node
+
   plt.figure(num=None, figsize=fig_size, dpi=80)
   plt.axis('off')
   nodes_position = nx.spring_layout(networkx_graph)

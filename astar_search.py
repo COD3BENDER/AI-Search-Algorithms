@@ -1,51 +1,65 @@
 from queue import PriorityQueue
+'''
+Reference: compiled this function from lab 4 solution Author: Dr Huy Phan
+'''
 
-def heuristic(node,goal,node_attributes):  # Calculates the admissible heuristic of a node
+def heuristic(node,goal,node_attributes):  # This function is used to calculate the heuristic to be added to the cost
 
-    main_zone_inital = int(node_attributes[node]['primary'].strip('" "'))
-    main_zone_destination = int(node_attributes[goal]['primary'].strip('" "'))
-    score = abs(main_zone_inital-main_zone_destination)
+    main_zone_current_node = int(node_attributes[node]['primary'].strip('" "')) # get the main zone attribute for the current node
+    main_zone_destination_node = int(node_attributes[goal]['primary'].strip('" "')) # get the main zone attribute for the goal node
+    main_zone_score = abs(main_zone_current_node-main_zone_destination_node) # subtract the zones to get a cost for the main zone difference and abs to always pass positive
+
+    secondary_zone_current_node = int(node_attributes[node]['secondary'].strip('" "')) # get the secondary zone attribute for the current node
+    secondary_zone_destination_node = int(node_attributes[goal]['secondary'].strip('" "')) # get the secondary zone attribute for the goal node
+    secondary_zone_score = abs(secondary_zone_current_node - secondary_zone_destination_node)  # subtract the zones to get a cost for the secondary zone difference and abs to always pass positive
+    score = abs(main_zone_score + secondary_zone_score) # add the score of the main zone and secondary zone and return positive value
     #print(score)
-    return score
+    return score # returns score to h
 
-def astar_search(graph, origin, goal, node_attributes):
-    admissible_heuristics = {}  # Will save the values of h so i don't need to calculate multiple times for every node
-    h = heuristic(origin,goal,node_attributes) # prints 0
-    admissible_heuristics[origin] = h
-    visited_nodes = {}  # This will contain the data of how to get to any node
-    visited_nodes[origin] = (h, [origin])  # I add the data for the origin node: "Travel cost + heuristic", "Path to get there" and "Admissible Heuristic"
+def astar_search(tubedatagraph, current_node, goal_node, node_attributes, compute_exploration_cost=True):
+    stored_heuristics = {}  # this saves the score values of h into a dictionary so that it doesnt have to get calcualted everytime
+    h = heuristic(current_node, goal_node, node_attributes) # prints 0
+    stored_heuristics[current_node] = h
+    explored = {}  # explored node dictionary set to empty, used to retrieve nodes
+    explored[current_node] = (h, [current_node])  # I start node to explored
 
-    paths_to_explore = PriorityQueue()
-    paths_to_explore.put((h, [origin], 0))  # Add the origin node to paths to explore, also add cost without h
-    # I add the total cost, as well as the path to get there (they will be sorted automatically)
+    frontier = PriorityQueue() # create empty priority queue and call it frontier
+    frontier.put((h, [current_node], 0))  # Add start node to frontier
+    #
 
-    while not paths_to_explore.empty():  # While there are still paths to explore
-        # Pop elemenet with lower path cost in the queue
-        _, path, total_cost = paths_to_explore.get()
+    while not frontier.empty():  # While there are still paths to explore
+
+        _, path, total_cost = frontier.get() # dequeue the node that has the smallest cost
         current_node = path[-1]
-        neighbors = graph.neighbors(current_node)  # I get all the neighbors of the current path
+        neighbours = tubedatagraph.neighbors(current_node)  # retrieve all the neighbours of the current node
 
-        for neighbor in neighbors:
-            edge_data = graph.get_edge_data(path[-1], neighbor)
-            if "weight" in edge_data:
-                cost_to_neighbor = edge_data["weight"]  # If the graph has weights
-                #print(cost_to_neighbor)
+        if current_node == goal_node: # if current node is the goal node return goal node
+            if compute_exploration_cost:
+                print('number of explorations = {}'.format(len(explored))) # print the number of explorations to get to goal node
+            return explored[goal_node]
+
+        for neighbour in neighbours:
+            edge_attributes = tubedatagraph.get_edge_data(path[-1], neighbour) # retrive the weight for the neighbour node to work out the cost from the current node to neighbour node
+            if "weight" in edge_attributes:
+                path_cost = edge_attributes["weight"]  # get weight
+                #print(path_cost)
             else:
-                cost_to_neighbor = 1  # If the graph does not have weights I use 1
+                path_cost = 1  # If the node does not have a weight just add 1
 
-            if neighbor in admissible_heuristics:
-                h = admissible_heuristics[neighbor]
+
+            if neighbour in stored_heuristics: # if the neighbour node is in the stored heuristics dictionary then retrieve its heuristic value
+                h = stored_heuristics[neighbour]
             else:
-                h = heuristic(neighbor,goal,node_attributes)
-                admissible_heuristics[neighbor] = h
+                h = heuristic(neighbour, goal_node, node_attributes) # if it the node isnt stored in the heuristic dictionary then retrieve its heuristic value
+                stored_heuristics[neighbour] = h
 
-            new_cost = total_cost + cost_to_neighbor
-            new_cost_plus_h = new_cost + h
-            #print(new_cost_plus_h)
-            if (neighbor not in visited_nodes) or (visited_nodes[neighbor][
-                                                       0] > new_cost_plus_h):  # If this node was never explored, or the cost to get there is better than te previous ones
-                next_node = (new_cost_plus_h, path + [neighbor], new_cost)
-                visited_nodes[neighbor] = next_node  # Update the node with best value
-                paths_to_explore.put(next_node)  # Also will add it as a possible path to explore
+            cost = total_cost + path_cost # retrieve cost for current node
+            cost_with_h = cost + h # add heuristic value to the cost
+            #print(cost_with_h)
+            if (neighbour not in explored) or (explored[neighbour][
+                                                       0] > cost_with_h):  # if node wasnt explored or the cost is better than previous node
+                next_node = (cost_with_h, path + [neighbour], cost)
+                explored[neighbour] = next_node  # add node to explored
+                frontier.put(next_node)  # add it to frontier to get evaluated
 
-    return visited_nodes[goal]  # I will return the goal information, it will have both the total cost and the path
+    return explored[goal_node]  #  return the goal node

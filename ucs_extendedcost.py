@@ -1,55 +1,47 @@
 from queue import PriorityQueue
 
-def uniform_cost_search_extended(nxobject, initial, goal, node_attributes):
+'''
+Reference: compiled this function with help from lab 4 solution astar Author: Dr Huy Phan 
+ as we know that the Astar algorithm becomes UCS when the heuristic os set to 0
 
-    frontier = PriorityQueue()
-    frontier.put((0, [initial], 0))  # Add the origin node to paths to explore, also add cost 0
+'''
+
+def uniform_cost_search_extended(tubedatagraph, current_node, goal_node, node_attributes,
+                                 compute_exploration_cost=True):
+    frontier = PriorityQueue()  # create priority queue for frontier
+    frontier.put((0, [current_node], 0))  # add the start node to frontier
     explored_nodes = {}  # This will contain the data of how to get to any node
-    explored_nodes[initial] = (0, [initial])  # I add the data for the origin node: "Travel cost + heuristic", "Path to get there" and "Admissible Heuristic"
-    # I add the total cost, as well as the path to get there (they will be sorted automatically)
-    initial_train_line = node_attributes[initial]['service']
-    while not frontier.empty():  # While there are still paths to explore
-        # Pop elemenet with lower path cost in the queue
-        _, path, path_cost = frontier.get()
-        current_node = path[-1]
-        neighbors = nxobject.neighbors(current_node)  # I get all the neighbors of the current path
+    explored_nodes[current_node] = (0, [current_node])  # add start node to explored
+    goal_train_line = node_attributes[current_node]['service']  # get train line attribute for goal node
 
-        for neighbor in neighbors:
-            neighbor_train_line = node_attributes[neighbor]['service']
-            edge_data = nxobject.get_edge_data(path[-1], neighbor)
+    while not frontier.empty():  # when frontier is not empty
+
+        _, path, path_cost = frontier.get()  # get the node that has smallest cost
+        current_node = path[-1]
+
+        if current_node == goal_node:  # if current node is goal node
+            if compute_exploration_cost:  # print the number of explorations to get to goal node
+                print('number of explorations = {}'.format(len(explored_nodes)))
+
+            return explored_nodes[goal_node]
+        neighbors = tubedatagraph.neighbors(current_node)  # I get all the neighbors of the current path
+
+        for neighbor in neighbors: # retrive the weight for the neighbour node to work out the cost from the current
+            current_train_line = node_attributes[neighbor]['service']
+            edge_data = tubedatagraph.get_edge_data(path[-1], neighbor)
             cost_to_neighbor = edge_data["weight"]  # graph weights
-            if neighbor_train_line == initial_train_line:
+            if current_train_line == goal_train_line: # if the train line is the same
                 cost = path_cost + cost_to_neighbor
                 cost_extended = cost + 0
-            else:
+            else: # if it isnt
                 cost = path_cost + cost_to_neighbor
-                cost_extended = cost + 8 # add weight if the tube line is transfered to keep path on same tube line as much as possible
+                cost_extended = cost + 5  # add weight if the tube line is transfered to keep path on same tube line as much as possible
 
-            if (neighbor not in explored_nodes) or (explored_nodes[neighbor][0] > cost_extended):  # If this node was never explored, or the cost to get there is better than te previous ones
+            if (neighbor not in explored_nodes) or (explored_nodes[neighbor][  # if node wasnt explored or the cost is better than previous node
+                                                        0] > cost_extended):
                 next_node = (cost_extended, path + [neighbor], cost_extended)
-                explored_nodes[neighbor] = next_node  # Update the node with best value
-                frontier.put(next_node)  # Also will add it as a possible path to explore
+                explored_nodes[neighbor] = next_node   # add node to explored
+                frontier.put(next_node)  # add it to frontier to get evaluated
 
-    return explored_nodes[goal]  # I will return the goal information, it will have both the total cost and the path
-
-
-
-
-
-'''
-procedure uniform_cost_search(Graph, start, goal) is
-    node ← start
-    cost ← 0
-    frontier ← priority queue containing node only
-    explored ← empty set
-    do
-        if frontier is empty then
-            return failure
-        node ← frontier.pop()
-        if node is goal then
-            return solution
-        explored.add(node)
-        for each of node's neighbors n do
-            if n is not in explored then
-                frontier.add(n)
-'''
+    return explored_nodes[
+        goal_node]  #  return the goal node

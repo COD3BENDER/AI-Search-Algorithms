@@ -1,51 +1,43 @@
 from queue import PriorityQueue
 
+'''
+Reference: compiled this function with help from lab 4 solution astar Author: Dr Huy Phan 
+ as we know that the Astar algorithm becomes UCS when the heuristic os set to 0
+ 
+'''
 
-def uniform_cost_search(nxobject, initial, goal, node_attributes, compute_exploration_cost=True):
+def uniform_cost_search(tubedatagraph, current_node, goal_node, node_attributes, compute_exploration_cost=True):
 
-    frontier = PriorityQueue()
-    frontier.put((0, [initial], 0))
+    frontier = PriorityQueue() # create priority queue for frontier
+    frontier.put((0, [current_node], 0)) # add the start node to frontier
+    number_of_explored_nodes = 1
+    explored = {}  # This will contain the data of how to get to any node
+    explored[current_node] = (0, [
+        current_node])  # add start node to explored
 
-    explored_nodes = {}  # This will contain the data of how to get to any node
-    explored_nodes[initial] = (0, [
-        initial])  # I add the data for the origin node: "Travel cost + heuristic", "Path to get there" and "Admissible Heuristic"
+    while not frontier.empty():  # when frontier is not empty
 
-    while not frontier.empty():  # While there are still paths to explore
-        # Pop elemenet with lower path cost in the queue
-        _, path, path_cost = frontier.get()
+        _, path, path_cost = frontier.get() # get the node that has smallest cost
         current_node = path[-1]
 
-        neighbors = nxobject.neighbors(current_node)  # I get all the neighbors of the current path
+        if current_node== goal_node: # if current node is goal node
+            if compute_exploration_cost:
+                print('number of explorations = {}'.format(len(explored)))# print the number of explorations to get to goal node
+            return explored[goal_node] # return goal node
+
+        neighbors = tubedatagraph.neighbors(current_node)  # I get all the neighbors of the current path
 
         for neighbor in neighbors:
-            edge_data = nxobject.get_edge_data(path[-1], neighbor)
-            cost_to_neighbor = edge_data["weight"]  # graph weights
-            cost = path_cost + cost_to_neighbor
+            edge_attributes = tubedatagraph.get_edge_data(path[-1], neighbor) # retrive the weight for the neighbour node to work out the cost from the current node
+            cost_to_neighbor = edge_attributes["weight"]  # get weight
+            cost = path_cost + cost_to_neighbor # calculate cost
             # cost_extended = cost + 0
-            if (neighbor not in explored_nodes) or (explored_nodes[neighbor][
-                                                        0] > cost):  # If this node was never explored, or the cost to get there is better than te previous ones
+            if (neighbor not in explored) or (explored[neighbor][  # if node wasnt explored or the cost is better than previous node
+                                                        0] > cost):
                 next_node = (cost, path + [neighbor], cost)
 
-                explored_nodes[neighbor] = next_node  # Update the node with best value
-                frontier.put(next_node)  # Also will add it as a possible path to explore
+                explored[neighbor] = next_node   # add node to explored
+                frontier.put(next_node)   # add it to frontier to get evaluated
 
-    return explored_nodes[goal]  # I will return the goal information, it will have both the total cost and the path
+    return explored[goal_node] #  return the goal node
 
-
-'''
-procedure uniform_cost_search(Graph, start, goal) is
-    node ← start
-    cost ← 0
-    frontier ← priority queue containing node only
-    explored ← empty set
-    do
-        if frontier is empty then
-            return failure
-        node ← frontier.pop()
-        if node is goal then
-            return solution
-        explored.add(node)
-        for each of node's neighbors n do
-            if n is not in explored then
-                frontier.add(n)
-'''
